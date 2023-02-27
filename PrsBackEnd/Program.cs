@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+
 builder.Services.AddDbContext<PrsDbContext>(
         // lambda expression
         options => options.UseSqlServer(builder.Configuration.GetConnectionString("PrsConnectionString"))

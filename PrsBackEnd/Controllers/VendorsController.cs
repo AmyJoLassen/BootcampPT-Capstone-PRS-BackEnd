@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PrsBackEnd.Data;
 using PrsBackEnd.Models;
@@ -21,14 +16,14 @@ namespace PrsBackEnd.Controllers
             _context = context;
         }
 
-        // GET: api/Vendors
+        // GET: api/Vendor
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Vendor>>> GetVendors()
+        public async Task<ActionResult<IEnumerable<Vendor>>> GetVendor()
         {
             return await _context.Vendors.ToListAsync();
         }
 
-        // GET: api/Vendors/5
+        // GET: api/Vendor/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Vendor>> GetVendor(int id)
         {

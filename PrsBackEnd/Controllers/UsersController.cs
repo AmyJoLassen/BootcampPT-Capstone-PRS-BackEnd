@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PrsBackEnd.Data;
 using PrsBackEnd.Models;
@@ -21,9 +16,56 @@ namespace PrsBackEnd.Controllers
             _context = context;
         }
 
+
+
+        // Incoming JSON:
+        //{
+        // "username": "string",
+        // "password": "string"
+        //}
+
+        //[Route("login")]
+        //[HttpPost]
+        //public async Task<ActionResult<User>> LoginUser([FromBody] UserPasswordOdject upo)
+        //{
+        //    var user = await _context.Users.Where(u => u.Username == upo.Username && u.Password == upo.Password).FirstOrDefaultAsync();
+
+        //    //var user = await (from u in_context.Users
+        //    //                 where u.Username == userName && u.Password == password
+        //    //                 select new { Username = u.Username, Lasstname = u.Lastname } ).FirstOrDefaultAsync();
+
+        //    if (user == null)
+        //    {
+        //        return NotFound();  //404
+        //    }
+
+        //    return user;
+
+        //}
+
+        [Route("/login")]
+        [HttpPost]
+        public async Task<ActionResult<User>> LoginUser([FromBody] UserPasswordObject upo)
+        {
+            var user = await _context.Users.Where(u => u.Username == upo.username && u.Password == upo.password).FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return NotFound();  // 404
+            }
+
+            return user;  // best practice: only return what's needed!
+
+            // anonymous type 
+            //return new { Firstname = user.Firstname, Lastname = user.Lastname, Id = user.Id, IsAdmin = user.IsAdmin };
+
+        }
+
+
+
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers()       // methods / ACTIONS
         {
             return await _context.Users.ToListAsync();
         }
@@ -105,4 +147,5 @@ namespace PrsBackEnd.Controllers
             return _context.Users.Any(e => e.Id == id);
         }
     }
+
 }
