@@ -25,14 +25,14 @@ namespace PrsBackEnd.Controllers
         // GET: api/Requests - Gets a request in "REVIEW" status and is not owned by the used that created the request.
         [Route("Mystery")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Request>>> GetRequestsInReview(int userid)
+        public async Task<ActionResult<IEnumerable<Request>>> GetRequestsInReview([FromBody] int userid)
         {
             return await _context.Request
                 .Where(r => r.Status == PrsBackEnd.Models.Request.StatusReview && userid != r.UserId)
                 .ToListAsync();
         }
 
-        // GET: api/Requests/5
+        // GET: api/Requests/5  get all (Requests by Id# only include User, RequestLines, and Products)
         [HttpGet("{id}")]
         public async Task<ActionResult<Request>> GetRequest(int id)
         {
@@ -40,7 +40,7 @@ namespace PrsBackEnd.Controllers
                 .Include(r => r.User)
                 .Include(r => r.RequestLines)
                     .ThenInclude(rl => rl.Product)
-                //.ThenInclude(p => p.Vendor)
+                // .ThenInclude(p => p.Vendor)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (request == null)
@@ -54,17 +54,18 @@ namespace PrsBackEnd.Controllers
         // PUT: api/Requests/5
         // Review(request) - will set the status of the request for the ID provided to 'REVIEW' 
         // unless the total of the request is >= $50. if so, set status to 'Approved'
-        [HttpPut("{id}/review")]
-        public async Task<IActionResult> PutStatusReviewOrApproved(int id, Request request)
+        [HttpPut("/review")]
+        public async Task<IActionResult> PutStatusReviewOrApproved([FromBody] Request request)
         {
-            var Request = await _context.Request.FindAsync(id);
-            if (Request == null)
+            var req = await _context.Request.FindAsync(request.Id);
+            if (req == null)
             {
                 return NotFound();
             }
 
-            request.Status = (request.Total <= 50) ? "APPROVE" : "REVIEW";
-            return await PutRequest(id, request);
+            req.Status = (request.Total <= 50) ? "APPROVE" : "REVIEW";
+            await _context.SaveChangesAsync();
+            return Ok(request);
         }
 
         // PUT: (api/request/5/approve - sets the status of the request to 'Approved'
@@ -102,13 +103,13 @@ namespace PrsBackEnd.Controllers
         // PUT: api/Requests/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutRequest(int id, Request request)
+        [HttpPut]
+        public async Task<IActionResult> PutRequest([FromBody] Request request)
         {
-            if (id != request.Id)
-            {
-                return BadRequest();
-            }
+            //if (id != request.Id)
+            //{
+            //    return BadRequest();
+            //}
 
             _context.Entry(request).State = EntityState.Modified;
 
@@ -118,14 +119,14 @@ namespace PrsBackEnd.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!RequestExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                //if (!RequestExists(id))
+                //{
+                //    return NotFound();
+                //}
+                //else
+                //{
+                //    throw;
+                //}
             }
 
             return NoContent();
@@ -136,7 +137,7 @@ namespace PrsBackEnd.Controllers
         // POST: api/Requests
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Request>> PostRequest(Request request)
+        public async Task<ActionResult<Request>> PostRequest([FromBody] Request request)
         {
             _context.Request.Add(request);
             await _context.SaveChangesAsync();
@@ -146,7 +147,7 @@ namespace PrsBackEnd.Controllers
 
         // DELETE: api/Requests/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRequest(int id)
+        public async Task<IActionResult> DeleteRequest([FromBody] int id)
         {
             var request = await _context.Request.FindAsync(id);
             if (request == null)

@@ -35,13 +35,11 @@ namespace PrsBackEnd.Models
 
         //FK
         [ForeignKey(nameof(UserId))]
-        public User User { get; set; }
+        public User? User { get; set; }
 
         public int UserId { get; set; }
 
-
         // relation property
-
         public List<RequestLine>? RequestLines { get; set; }
     }
 }

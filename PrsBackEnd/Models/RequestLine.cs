@@ -1,5 +1,6 @@
 ﻿using Microsoft.Build.Framework;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PrsBackEnd.Models
 {
@@ -10,10 +11,13 @@ namespace PrsBackEnd.Models
 
         // FK
         [JsonIgnore]
+        [ForeignKey(nameof(RequestId))]
         public Request Request { get; set; }
         public int RequestId { get; set; }
 
         // relationship
+        [JsonIgnore]
+        [ForeignKey(nameof(ProductId))]
         public Product Product { get; set; }
         public int ProductId { get; set; }
 

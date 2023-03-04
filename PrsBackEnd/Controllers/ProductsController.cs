@@ -16,14 +16,14 @@ namespace PrsBackEnd.Controllers
             _context = context;
         }
 
-        // GET: api/Products
+        // GET: api/Products            (Get all Products)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
             return await _context.Product.ToListAsync();
         }
 
-        // GET: api/Products/5
+        // GET: api/Products/5          (Get Products by specific Id#)
         [HttpGet("/{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
@@ -37,7 +37,7 @@ namespace PrsBackEnd.Controllers
             return product;
         }
 
-        // PUT: api/Products/5
+        // PUT: api/Products/Id
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(int id, Product product)
@@ -71,7 +71,7 @@ namespace PrsBackEnd.Controllers
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
+        public async Task<ActionResult<Product>> PostProduct([FromBody] Product product)
         {
             _context.Product.Add(product);
             await _context.SaveChangesAsync();
