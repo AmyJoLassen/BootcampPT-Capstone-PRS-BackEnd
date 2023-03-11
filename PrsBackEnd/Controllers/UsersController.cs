@@ -18,48 +18,6 @@ namespace PrsBackEnd.Controllers
 
 
 
-        // Incoming JSON:
-        //{
-        // "username": "string",
-        // "password": "string"
-        //}
-
-        //[Route("login")]
-        //[HttpPost]
-        //public async Task<ActionResult<User>> LoginUser([FromBody] UserPasswordOdject upo)
-        //{
-        //    var user = await _context.Users.Where(u => u.Username == upo.Username && u.Password == upo.Password).FirstOrDefaultAsync();
-
-        //    //var user = await (from u in_context.Users
-        //    //                 where u.Username == userName && u.Password == password
-        //    //                 select new { Username = u.Username, Lasstname = u.Lastname } ).FirstOrDefaultAsync();
-
-        //    if (user == null)
-        //    {
-        //        return NotFound();  //404
-        //    }
-
-        //    return user;
-
-        //}
-
-        [Route("/login")]
-        [HttpPost]
-        public async Task<ActionResult<User>> LoginUser([FromBody] UserPasswordObject upo)
-        {
-            var user = await _context.Users.Where(u => u.Username == upo.username && u.Password == upo.password).FirstOrDefaultAsync();
-
-            if (user == null)
-            {
-                return NotFound();  // 404
-            }
-
-            return user;  // best practice: only return what's needed!
-
-            // anonymous type 
-            //return new { Firstname = user.Firstname, Lastname = user.Lastname, Id = user.Id, IsAdmin = user.IsAdmin };
-
-        }
 
 
         // GET: api/Users           (Get All Users)
@@ -134,6 +92,25 @@ namespace PrsBackEnd.Controllers
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.Id == id);
+        }
+
+
+        [Route("/login")]
+        [HttpPost]
+        public async Task<ActionResult<User>> LoginUser([FromBody] UserPasswordObject upo)
+        {
+            var user = await _context.Users.Where(u => u.Username == upo.username && u.Password == upo.password).FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return NotFound();  // 404
+            }
+
+            return user;  // best practice: only return what's needed!
+
+            // anonymous type 
+            //return new { Firstname = user.Firstname, Lastname = user.Lastname, Id = user.Id, IsAdmin = user.IsAdmin };
+
         }
     }
 

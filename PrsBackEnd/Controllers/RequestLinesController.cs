@@ -66,7 +66,7 @@ namespace PrsBackEnd.Controllers
 
         // GET: api/Request-Lines/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<RequestLine>> GetRequestLine([FromBody] int id)
+        public async Task<ActionResult<RequestLine>> GetRequestLine(int id)
         {
             var requestLine = await _context.RequestLine.FindAsync(id);
 
@@ -74,19 +74,19 @@ namespace PrsBackEnd.Controllers
             {
                 return NotFound();
             }
-
+            await RecalculateRequestTotal(requestLine.RequestId);
             return requestLine;
         }
 
         // PUT: api/Request-Lines/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut]
-        public async Task<IActionResult> PutRequestLine([FromBody] RequestLine requestLine)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutRequestLine(int id, RequestLine requestLine)
         {
-            //if (id != requestLine.Id)
-            //{
-            //    return BadRequest();
-            //}
+            if (id != requestLine.Id)
+            {
+                return BadRequest();
+            }
 
             _context.Entry(requestLine).State = EntityState.Modified;
 
@@ -97,14 +97,14 @@ namespace PrsBackEnd.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                //if (!RequestLineExists(id))
-                //{
-                //    return NotFound();
-                //}
-                //else
-                //{
-                //    throw;
-                //}
+                if (!RequestLineExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
             }
 
             return NoContent();
@@ -129,8 +129,8 @@ namespace PrsBackEnd.Controllers
                              where l.RequestId == RequestId
                              select new { LineTotal = l.Quantity * i.Price })
                             .Sum(x => x.LineTotal);
-
             requ.Total = requTotal;
+
             await _context.SaveChangesAsync();
 
             //return Ok();
@@ -143,7 +143,7 @@ namespace PrsBackEnd.Controllers
         {
             _context.RequestLine.Add(requestLine);
             await _context.SaveChangesAsync();
-            RecalculateRequestTotal(requestLine.RequestId);
+            await RecalculateRequestTotal(requestLine.RequestId);
 
             return CreatedAtAction("GetRequestLine", new { id = requestLine.Id }, requestLine);
         }
@@ -162,8 +162,7 @@ namespace PrsBackEnd.Controllers
 
             _context.RequestLine.Remove(requestLine);
             await _context.SaveChangesAsync();
-
-            RecalculateRequestTotal(theRequestId);
+            await RecalculateRequestTotal(requestLine.RequestId);
 
             return NoContent();
         }

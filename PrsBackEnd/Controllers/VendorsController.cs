@@ -20,14 +20,14 @@ namespace PrsBackEnd.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Vendor>>> GetVendor()
         {
-            return await _context.Vendors.ToListAsync();
+            return await _context.Vendor.ToListAsync();
         }
 
         // GET: api/Vendor/5    (Get Venor by Id#)
         [HttpGet("{id}")]
         public async Task<ActionResult<Vendor>> GetVendor(int id)
         {
-            var vendor = await _context.Vendors.FindAsync(id);
+            var vendor = await _context.Vendor.FindAsync(id);
 
             if (vendor == null)
             {
@@ -73,7 +73,7 @@ namespace PrsBackEnd.Controllers
         [HttpPost]
         public async Task<ActionResult<Vendor>> PostVendor(Vendor vendor)
         {
-            _context.Vendors.Add(vendor);
+            _context.Vendor.Add(vendor);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetVendor", new { id = vendor.Id }, vendor);
@@ -83,13 +83,13 @@ namespace PrsBackEnd.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteVendor(int id)
         {
-            var vendor = await _context.Vendors.FindAsync(id);
+            var vendor = await _context.Vendor.FindAsync(id);
             if (vendor == null)
             {
                 return NotFound();
             }
 
-            _context.Vendors.Remove(vendor);
+            _context.Vendor.Remove(vendor);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -97,7 +97,7 @@ namespace PrsBackEnd.Controllers
 
         private bool VendorExists(int id)
         {
-            return _context.Vendors.Any(e => e.Id == id);
+            return _context.Vendor.Any(e => e.Id == id);
         }
     }
 }

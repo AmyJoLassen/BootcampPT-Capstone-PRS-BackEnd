@@ -20,14 +20,17 @@ namespace PrsBackEnd.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-            return await _context.Product.ToListAsync();
+            return await _context.Product.Include(p => p.Vendor).ToListAsync();
         }
+
 
         // GET: api/Products/5          (Get Products by specific Id#)
         [HttpGet("/{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var product = await _context.Product.FindAsync(id);
+            var product = await _context.Product
+                .Include(v => v.Vendor)
+                .SingleOrDefaultAsync(product => product.Id == id);
 
             if (product == null)
             {
@@ -36,6 +39,7 @@ namespace PrsBackEnd.Controllers
 
             return product;
         }
+
 
         // PUT: api/Products/Id
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

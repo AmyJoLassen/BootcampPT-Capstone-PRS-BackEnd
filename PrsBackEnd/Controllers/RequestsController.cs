@@ -19,16 +19,19 @@ namespace PrsBackEnd.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Request>>> GetRequestsInReview()
         {
-            return await _context.Request.ToListAsync();
+            return await _context.Request
+                .Include(x => x.User)
+                .ToListAsync();
         }
 
         // GET: api/Requests - Gets a request in "REVIEW" status and is not owned by the used that created the request.
         [Route("Mystery")]
-        [HttpGet]
+        [HttpGet("review/{userId}")]
         public async Task<ActionResult<IEnumerable<Request>>> GetRequestsInReview([FromBody] int userid)
         {
             return await _context.Request
                 .Where(r => r.Status == PrsBackEnd.Models.Request.StatusReview && userid != r.UserId)
+                .Include(x => x.User)
                 .ToListAsync();
         }
 
@@ -39,8 +42,8 @@ namespace PrsBackEnd.Controllers
             var request = await _context.Request
                 .Include(r => r.User)
                 .Include(r => r.RequestLines)
-                    .ThenInclude(rl => rl.Product)
-                // .ThenInclude(p => p.Vendor)
+                .ThenInclude(rl => rl.Product)
+                .ThenInclude(p => p.Vendor)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (request == null)
@@ -54,7 +57,7 @@ namespace PrsBackEnd.Controllers
         // PUT: api/Requests/5
         // Review(request) - will set the status of the request for the ID provided to 'REVIEW' 
         // unless the total of the request is >= $50. if so, set status to 'Approved'
-        [HttpPut("/review")]
+        [HttpPut("/Review")]
         public async Task<IActionResult> PutStatusReviewOrApproved([FromBody] Request request)
         {
             var req = await _context.Request.FindAsync(request.Id);
@@ -69,7 +72,7 @@ namespace PrsBackEnd.Controllers
         }
 
         // PUT: (api/request/5/approve - sets the status of the request to 'Approved'
-        [HttpPut("/approve")]
+        [HttpPut("/ApproveRequest")]
         public async Task<IActionResult> Approve([FromBody] Request request)
         {
             var Requ = await _context.Request.FindAsync(request.Id);
@@ -85,7 +88,7 @@ namespace PrsBackEnd.Controllers
         }
 
         // PUT: Reject(request)  
-        [HttpPut("/reject")]
+        [HttpPut("/RejectRequest")]
         public async Task<IActionResult> Reject([FromBody] Request request)
         {
             var Requ = await _context.Request.FindAsync(request.Id);
@@ -94,7 +97,7 @@ namespace PrsBackEnd.Controllers
                 return NotFound();
             }
 
-            request.Status = "REJECT";
+            request.Status = "REJECTED";
             _context.SaveChanges();
 
             return Ok();
@@ -147,7 +150,7 @@ namespace PrsBackEnd.Controllers
 
         // DELETE: api/Requests/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRequest([FromBody] int id)
+        public async Task<IActionResult> DeleteRequest(int id)
         {
             var request = await _context.Request.FindAsync(id);
             if (request == null)
@@ -165,5 +168,35 @@ namespace PrsBackEnd.Controllers
         {
             return _context.Request.Any(e => e.Id == id);
         }
+
+        [HttpPut("ReviewRequest")]
+        public async Task<IActionResult> ReviewRequest(Request request)
+        {
+            if (request.Total > 50)
+                request.Status = "Review";
+            else
+                request.Status = "Approved";
+            return Ok();
+        }
+
+        public string Status { get; set; }
+        [HttpPut("CheckStatus")]
+        public async Task<IActionResult> ReviewsRequest(Request request)
+        {
+            if (request.Total <= 50)
+            {
+                request.Status = "APPROVED";
+            }
+
+            else
+            {
+                request.Status = "REVIEW";
+            }
+
+            _context.SaveChanges();
+            return Ok();
+
+        }
+
     }
 }
