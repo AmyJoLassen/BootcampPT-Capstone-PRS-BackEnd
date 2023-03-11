@@ -5,7 +5,7 @@ using PrsBackEnd.Models;
 
 namespace PrsBackEnd.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/[controller]")]
     [ApiController]
     public class VendorsController : ControllerBase
     {
@@ -16,16 +16,16 @@ namespace PrsBackEnd.Controllers
             _context = context;
         }
 
-        // GET: api/Vendor (Get All Vendors)
+        // GET: /vendor
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Vendor>>> GetVendor()
+        public async Task<ActionResult<IEnumerable<Vendor>>> GetAllVendor()
         {
             return await _context.Vendor.ToListAsync();
         }
 
-        // GET: api/Vendor/5    (Get Venor by Id#)
+        // GET: /vendor/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Vendor>> GetVendor(int id)
+        public async Task<ActionResult<Vendor>> GetVendorById(int id)
         {
             var vendor = await _context.Vendor.FindAsync(id);
 
@@ -37,10 +37,10 @@ namespace PrsBackEnd.Controllers
             return vendor;
         }
 
-        // PUT: api/Vendors/Id
+        // PUT: /vendors/Id
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutVendor(int id, Vendor vendor)
+        public async Task<IActionResult> UpdateVendor(int id, Vendor vendor)
         {
             if (id != vendor.Id)
             {
@@ -68,10 +68,10 @@ namespace PrsBackEnd.Controllers
             return NoContent();
         }
 
-        // POST: api/Vendors 
+        // POST: /vendors 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Vendor>> PostVendor(Vendor vendor)
+        public async Task<ActionResult<Vendor>> CreateNewVendor(Vendor vendor)
         {
             _context.Vendor.Add(vendor);
             await _context.SaveChangesAsync();
@@ -79,7 +79,7 @@ namespace PrsBackEnd.Controllers
             return CreatedAtAction("GetVendor", new { id = vendor.Id }, vendor);
         }
 
-        // DELETE: api/Vendors/5    (Delete Vendor by specific Id#)
+        // DELETE: /vendors/5    (Delete Vendor by specific Id#)
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteVendor(int id)
         {

@@ -5,7 +5,7 @@ using PrsBackEnd.Models;
 
 namespace PrsBackEnd.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/request-lines")]
     [ApiController]
 
 
@@ -18,70 +18,36 @@ namespace PrsBackEnd.Controllers
             _context = context;
         }
 
-        //[Route("/totalrequests")]
-        //[HttpGet]
 
-        // SELECT @tot = SUM(rl.Quantity * p.Price)
-        //  FROM Requstlines rl
-        //  JOIN Products o
-        //  ON rl.ProductId = p.Id
-        //  WHERE rl.RequestId = 15;
-
-        //LINQ query syntax (SQL syntax)
-        //var testquery = from rl in _context.Requestlines
-        //                join p in _context.Products on rl.ProductId equals p.Id
-        //                where rl.RequestId == reqId
-        //                select new { rl.Quantity, p.Price };
-        //decimal test0 = 0;
-        //foreach (var item in testquery) //SUM
-        //{
-        //    test0 += item.Quantity * item.Price;
-        //}
-
-
-        //var test1 = (
-        //    from rl in _context.Requestlines
-        //    join p in _context.Products on rl.ProductId equals p.Id
-        //    where rl.RequestId == reqId
-        //    group rl by rl.RequestId into g
-        //    select g.Sum(i => 1m * i.Quantiy * i.Product.price)
-        //    )
-        //    .FirstOrDefault()
-        //    ;
-
-        // called a fluent API
-        //var test3 = _context.RequestLine
-        //    .Where(rl => rl.RequestId == reqId)
-        //    .Include(rl => rl.Product)
-        //    .Select(rl => new { linetotal = rl.Quantity * rl.Product.Price })
-        //    .Sum(s => s.linetotal);
-
-
-        // GET: api/Request-Lines
+        // GET: /request-lines
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RequestLine>>> GetRequestLine()
+        public async Task<ActionResult<IEnumerable<RequestLine>>> GetAllRequestLines()
         {
             return await _context.RequestLine.ToListAsync();
         }
 
-        // GET: api/Request-Lines/5
+        // GET: /request-lines/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<RequestLine>> GetRequestLine(int id)
+        public async Task<ActionResult<RequestLine>> GetRequestLineId(int id)
         {
-            var requestLine = await _context.RequestLine.FindAsync(id);
+            var requestLine = await _context.RequestLine
+                .Include(rl => rl.Request)
+                .ThenInclude(u => u.User)
+                .FirstOrDefaultAsync();
 
             if (requestLine == null)
             {
                 return NotFound();
             }
+
             await RecalculateRequestTotal(requestLine.RequestId);
             return requestLine;
         }
 
-        // PUT: api/Request-Lines/5
+        // PUT: /request-lines/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutRequestLine(int id, RequestLine requestLine)
+        public async Task<IActionResult> UpdateRequestLine(int id, RequestLine requestLine)
         {
             if (id != requestLine.Id)
             {
@@ -93,7 +59,7 @@ namespace PrsBackEnd.Controllers
             try
             {
                 await _context.SaveChangesAsync();   // update
-                RecalculateRequestTotal(requestLine.RequestId);
+                await RecalculateRequestTotal(requestLine.RequestId);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -111,35 +77,11 @@ namespace PrsBackEnd.Controllers
         }
 
 
-        /* Add method to recalulaterequesttotal(requestId) - recalculates the total property whenever an 
-         * insert, update, or delete occures to the Reqeustlines attached to the request.
-         * method is made private so it cannot be called outsie this class.
-         * it is called from PUT, Post or delete methods.
-         * */
-        [Route("/totalrequests")]
-        [HttpGet]
-        private async Task RecalculateRequestTotal([FromBody] int RequestId)
-        {
-            var requ = await _context.Request.FindAsync(RequestId);
-            if (Request == null)
-                throw new Exception("Error - Request not found to recalcualte");
-            var requTotal = (from l in _context.RequestLine
-                             join i in _context.Product
-                             on l.ProductId equals i.Id
-                             where l.RequestId == RequestId
-                             select new { LineTotal = l.Quantity * i.Price })
-                            .Sum(x => x.LineTotal);
-            requ.Total = requTotal;
 
-            await _context.SaveChangesAsync();
-
-            //return Ok();
-        }
-
-        // POST: api/Request-Lines
+        // POST: /request-lines
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<RequestLine>> PostRequestLine([FromBody] RequestLine requestLine)
+        public async Task<ActionResult<RequestLine>> CreateRequestLine(RequestLine requestLine)
         {
             _context.RequestLine.Add(requestLine);
             await _context.SaveChangesAsync();
@@ -148,9 +90,9 @@ namespace PrsBackEnd.Controllers
             return CreatedAtAction("GetRequestLine", new { id = requestLine.Id }, requestLine);
         }
 
-        // DELETE: api/Request-Lines/5
+        // DELETE: /requestlLines/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRequestLine([FromBody] int id)
+        public async Task<IActionResult> DeleteRequestLine(int id)
         {
             var requestLine = await _context.RequestLine.FindAsync(id);
             if (requestLine == null)
@@ -167,17 +109,27 @@ namespace PrsBackEnd.Controllers
             return NoContent();
         }
 
-        private bool RequestLineExists([FromBody] int id)
+        private bool RequestLineExists(int id)
         {
             return _context.RequestLine.Any(e => e.Id == id);
         }
 
-        // get the total
-        // Find the Request
-        // Update the Request
-        // await _context.SaveChangesAsync();
 
+        private async Task RecalculateRequestTotal(int RequestId)
+        {
+            var total = await _context.RequestLine
+                .Where(rl => rl.RequestId == RequestId)
+                .Include(rl => rl.Product)
+                .Select(rl => new { linetotal = rl.Product.Price * rl.Quantity })
+                .SumAsync(sum => sum.linetotal);
 
-        // ThrowExpressionSyntax new NotImplementedException();
+            var requ = await _context.Request.FindAsync(RequestId);
+
+            requ.Total = total;
+
+            await _context.SaveChangesAsync();
+
+        }
+
     }
 }

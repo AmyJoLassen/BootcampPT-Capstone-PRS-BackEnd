@@ -5,10 +5,11 @@ using PrsBackEnd.Models;
 
 namespace PrsBackEnd.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/[controller]")]
     [ApiController]
     public class RequestsController : ControllerBase
     {
+
         private readonly PrsDbContext _context;
 
         public RequestsController(PrsDbContext context)
@@ -25,9 +26,8 @@ namespace PrsBackEnd.Controllers
         }
 
         // GET: api/Requests - Gets a request in "REVIEW" status and is not owned by the used that created the request.
-        [Route("Mystery")]
         [HttpGet("review/{userId}")]
-        public async Task<ActionResult<IEnumerable<Request>>> GetRequestsInReview([FromBody] int userid)
+        public async Task<ActionResult<IEnumerable<Request>>> GetRequestsInReview(int userid)
         {
             return await _context.Request
                 .Where(r => r.Status == PrsBackEnd.Models.Request.StatusReview && userid != r.UserId)
@@ -35,24 +35,6 @@ namespace PrsBackEnd.Controllers
                 .ToListAsync();
         }
 
-        // GET: api/Requests/5  get all (Requests by Id# only include User, RequestLines, and Products)
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Request>> GetRequest(int id)
-        {
-            var request = await _context.Request
-                .Include(r => r.User)
-                .Include(r => r.RequestLines)
-                .ThenInclude(rl => rl.Product)
-                .ThenInclude(p => p.Vendor)
-                .FirstOrDefaultAsync(r => r.Id == id);
-
-            if (request == null)
-            {
-                return NotFound();
-            }
-
-            return request;
-        }
 
         // PUT: api/Requests/5
         // Review(request) - will set the status of the request for the ID provided to 'REVIEW' 
@@ -71,10 +53,12 @@ namespace PrsBackEnd.Controllers
             return Ok(request);
         }
 
+
         // PUT: (api/request/5/approve - sets the status of the request to 'Approved'
         [HttpPut("/ApproveRequest")]
         public async Task<IActionResult> Approve([FromBody] Request request)
         {
+
             var Requ = await _context.Request.FindAsync(request.Id);
             if (Requ == null)
             {
@@ -109,28 +93,14 @@ namespace PrsBackEnd.Controllers
         [HttpPut]
         public async Task<IActionResult> PutRequest([FromBody] Request request)
         {
-            //if (id != request.Id)
-            //{
-            //    return BadRequest();
-            //}
-
             _context.Entry(request).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                //if (!RequestExists(id))
-                //{
-                //    return NotFound();
-                //}
-                //else
-                //{
-                //    throw;
-                //}
-            }
+            catch (DbUpdateConcurrencyException) { }
+
 
             return NoContent();
         }
@@ -169,34 +139,7 @@ namespace PrsBackEnd.Controllers
             return _context.Request.Any(e => e.Id == id);
         }
 
-        [HttpPut("ReviewRequest")]
-        public async Task<IActionResult> ReviewRequest(Request request)
-        {
-            if (request.Total > 50)
-                request.Status = "Review";
-            else
-                request.Status = "Approved";
-            return Ok();
-        }
 
-        public string Status { get; set; }
-        [HttpPut("CheckStatus")]
-        public async Task<IActionResult> ReviewsRequest(Request request)
-        {
-            if (request.Total <= 50)
-            {
-                request.Status = "APPROVED";
-            }
-
-            else
-            {
-                request.Status = "REVIEW";
-            }
-
-            _context.SaveChanges();
-            return Ok();
-
-        }
 
     }
 }

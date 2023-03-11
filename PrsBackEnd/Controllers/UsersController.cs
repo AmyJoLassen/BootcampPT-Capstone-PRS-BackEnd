@@ -5,7 +5,7 @@ using PrsBackEnd.Models;
 
 namespace PrsBackEnd.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -16,21 +16,17 @@ namespace PrsBackEnd.Controllers
             _context = context;
         }
 
-
-
-
-
-        // GET: api/Users           (Get All Users)
+        // GET: /users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()       // methods / ACTIONS
+        public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()       // methods / ACTIONS
         {
             return await _context.Users.ToListAsync();
         }
 
 
-        // GET: api/Users/5         (Get User by specific Id#)
+        // GET: api/users/5         (Get User by specific Id#)
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser([FromBody] int id)
+        public async Task<ActionResult<User>> GetUserById(int id)
         {
             var user = await _context.Users.FindAsync(id);
 
@@ -46,8 +42,12 @@ namespace PrsBackEnd.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut]
-        public async Task<IActionResult> PutUser([FromBody] User user)
+        public async Task<IActionResult> PutUser(int id, User user)
         {
+            if (id != user.Id)
+            {
+                return BadRequest();
+            }
 
             _context.Entry(user).State = EntityState.Modified;
 
@@ -57,6 +57,14 @@ namespace PrsBackEnd.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
+                if (!UserExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
             }
 
             return NoContent();
@@ -65,7 +73,7 @@ namespace PrsBackEnd.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser([FromBody] User user)
+        public async Task<ActionResult<User>> PostUser(User user)
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -104,6 +112,11 @@ namespace PrsBackEnd.Controllers
             if (user == null)
             {
                 return NotFound();  // 404
+            }
+
+            if (user.Password != upo.password)
+            {
+                return NotFound();
             }
 
             return user;  // best practice: only return what's needed!

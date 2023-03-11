@@ -5,7 +5,7 @@ using PrsBackEnd.Models;
 
 namespace PrsBackEnd.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase
     {
@@ -16,7 +16,8 @@ namespace PrsBackEnd.Controllers
             _context = context;
         }
 
-        // GET: api/Products            (Get all Products)
+
+        // GET: /products            (Get all Products)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
@@ -24,13 +25,14 @@ namespace PrsBackEnd.Controllers
         }
 
 
-        // GET: api/Products/5          (Get Products by specific Id#)
-        [HttpGet("/{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        // GET: api/products/5          (Get Products by specific Id#)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Product>> GetProductById(int id)
         {
             var product = await _context.Product
                 .Include(v => v.Vendor)
-                .SingleOrDefaultAsync(product => product.Id == id);
+                .Where(p => p.Id == id)
+                .SingleOrDefaultAsync();
 
             if (product == null)
             {
@@ -41,10 +43,10 @@ namespace PrsBackEnd.Controllers
         }
 
 
-        // PUT: api/Products/Id
+        // PUT: /products/Id
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
+        public async Task<IActionResult> UpdateProduct(int id, Product product)
         {
             if (id != product.Id)
             {
@@ -72,10 +74,10 @@ namespace PrsBackEnd.Controllers
             return NoContent();
         }
 
-        // POST: api/Products
+        // POST: /products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct([FromBody] Product product)
+        public async Task<ActionResult<Product>> CreateNewProduct(Product product)
         {
             _context.Product.Add(product);
             await _context.SaveChangesAsync();
@@ -83,7 +85,7 @@ namespace PrsBackEnd.Controllers
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         }
 
-        // DELETE: api/Products/5
+        // DELETE: /products/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
